@@ -64,7 +64,7 @@ prog_char VERSTR[] PROGMEM = "1.6.0";
 // How to use 1-button menu
 // Long press activates menu
 // When within menus, short press cycles menu items, long press selects and exits current submenu
-//#define BTN_MENU
+#define BTN_MENU
 
 // When not in menus, short press instantly stops the EVSE - another short press resumes.  Long press activates menus
 // also allows menus to be manipulated even when in State B/C
@@ -1401,7 +1401,8 @@ void OnboardDisplay::Update()
   uint8_t curstate = g_EvseController.GetState();
   uint8_t svclvl = g_EvseController.GetCurSvcLevel();
   int i;
-#ifdef DELAYTIMER
+
+#if defined(DELAYTIMER) && defined(LCD16X2)
   g_CurrTime = g_RTC.now();
 #endif //#ifdef DELAYTIMER
 
@@ -3503,6 +3504,8 @@ void EvseReset()
 {
 #ifdef DELAYTIMER
   // Initialize Delay Timer - GoldServe
+  Wire.begin();
+  g_RTC.begin();
   g_DelayTimer.Init();
 #endif //#ifdef DELAYTIMER
 
