@@ -3062,8 +3062,8 @@ void DelayMenu::Next()
 }
 Menu *DelayMenu::Select()
 {
-  g_OBD.LcdPrint(0,1,"+");
-  g_OBD.LcdPrint(g_DelayMenuItems[m_CurIdx]);
+  //g_OBD.LcdPrint(0,1,"+");
+  //g_OBD.LcdPrint(g_DelayMenuItems[m_CurIdx]);
   delay(500);
   if (m_CurIdx == 0) {
     return &g_DelayMenuEnableDisable;
