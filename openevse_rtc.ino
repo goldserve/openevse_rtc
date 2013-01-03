@@ -83,6 +83,13 @@ prog_char VERSTR[] PROGMEM = "1.6.0";
 // Option for Delay Timer - GoldServe
 #define DELAYTIMER
 
+// Default start/stop timers for un-initialized EEPROMs.
+// Makes it easy to compile in default time without need to set it up the first time.
+#define ECF_DEFAULT_START_HOUR    0x00 //Start time: 00:05
+#define ECF_DEFAULT_START_MIN     0x05
+#define ECF_DEFAULT_STOP_HOUR     0x06 //End time: 6:55
+#define ECF_DEFAULT_STOP_MIN      0x37
+
 // Option for AutoStart Enable/Disable - GoldServe
 #define AUTOSTART
 
@@ -759,12 +766,6 @@ DelayMenuStopMin g_DelayMenuStopMin;
 
 BtnHandler g_BtnHandler;
 #endif // BTN_MENU
-
-// Default start/stop timers for un-initialized EEPROMs
-#define ECF_DEFAULT_START_HOUR    0x00
-#define ECF_DEFAULT_START_MIN     0x05
-#define ECF_DEFAULT_STOP_HOUR     0x06
-#define ECF_DEFAULT_STOP_MIN      0x37
 
 // Start Delay Timer class definition - GoldServe
 #ifdef DELAYTIMER
