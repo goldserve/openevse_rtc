@@ -64,7 +64,7 @@ prog_char VERSTR[] PROGMEM = "1.6.0";
 // How to use 1-button menu
 // Long press activates menu
 // When within menus, short press cycles menu items, long press selects and exits current submenu
-#define BTN_MENU
+//#define BTN_MENU
 
 // When not in menus, short press instantly stops the EVSE - another short press resumes.  Long press activates menus
 // also allows menus to be manipulated even when in State B/C
@@ -1544,8 +1544,12 @@ void OnboardDisplay::Update()
     }
   }
   // Display a new stopped LCD screen with Delay Timers enabled - GoldServe
-#ifdef DELAYTIMER  
+#ifdef DELAYTIMER
+#ifdef BTN_MENU
   else if (curstate == EVSE_STATE_DISABLED && !g_BtnHandler.InMenu()) {
+#else
+  else if (curstate == EVSE_STATE_DISABLED) {
+#endif //#ifdef BTN_MENU
     g_CurrTime = g_RTC.now();
     sprintf(g_sTmp,"%02d:%02d \0\1",g_CurrTime.hour(),g_CurrTime.minute());
     LcdPrint(0,1,g_sTmp);
