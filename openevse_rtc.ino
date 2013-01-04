@@ -73,7 +73,7 @@ prog_char VERSTR[] PROGMEM = "1.6.0";
 #ifdef BTN_MENU
 // use Adafruit RGB LCD select button
 #ifdef RGBLCD
-#define ADAFRUIT_BTN
+//#define ADAFRUIT_BTN
 #endif // RGBLCD
 #endif // BTN_MENU
 
@@ -183,7 +183,7 @@ prog_char VERSTR[] PROGMEM = "1.6.0";
 #define LCD_I2C_ADDR 0 // for adafruit LCD backpack
 #endif // RGBLCD || I2CLCD
 
-#define BTN_PIN A3 // button sensing pin
+#define BTN_PIN 7 //A3 // button sensing pin
 #define BTN_PRESS_SHORT 100  // ms
 #define BTN_PRESS_LONG 500 // ms
 
