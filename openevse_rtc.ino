@@ -36,7 +36,7 @@
 #include "WProgram.h" // shouldn't need this but arduino sometimes messes up and puts inside an #ifdef
 #endif // ARDUINO
 
-prog_char VERSTR[] PROGMEM = "1.6.0";
+prog_char VERSTR[] PROGMEM = "1.6.1";
 
 //-- begin features
 
@@ -1552,6 +1552,8 @@ void OnboardDisplay::Update()
 #else
   else if (curstate == EVSE_STATE_DISABLED) {
 #endif //#ifdef BTN_MENU
+    g_OBD.LcdSetCursor(0,0);
+    g_OBD.LcdPrint("Stopped");
     g_CurrTime = g_RTC.now();
     sprintf(g_sTmp,"%02d:%02d \0\1",g_CurrTime.hour(),g_CurrTime.minute());
     LcdPrint(0,1,g_sTmp);
@@ -2179,12 +2181,7 @@ void J1772EVSEController::Update()
     else if ((phigh  >= m_ThreshData.m_ThreshCD) ||
 	     (!VentReqEnabled() && (phigh > m_ThreshData.m_ThreshD))) {
       // 6V ready to charge
-      // New way to stop EVSE from charging - GoldServe
-      //if (g_StartCharging) {
         tmpevsestate = EVSE_STATE_C;
-      //} else {
-      //  tmpevsestate = EVSE_STATE_B;
-      //}
     }
     else if (phigh > m_ThreshData.m_ThreshD) {
       // 3V ready to charge vent required
@@ -2545,6 +2542,7 @@ Menu *SetupMenu::Select()
   }
 #endif //#ifdef AUTOSTART
   else {
+    g_OBD.LcdClear();
     return NULL;
   }
 }
@@ -3352,7 +3350,15 @@ void BtnHandler::ChkBtn()
 	}
       }
       else {
+#if defined(DELAYTIMER)
+        if (g_DelayTimer.IsTimerEnabled()){
+          g_DelayTimer.CheckNow();
+        } else {
+          g_EvseController.Enable();
+        }
+#else  
 	g_EvseController.Enable();
+#endif        
       }
     }
     else {
@@ -3430,43 +3436,41 @@ void DelayTimer::CheckTime(){
       uint16_t m_StopTimerSeconds = m_StopTimerHour * 360 + m_StopTimerMin * 6;
       uint16_t m_CurrTimeSeconds = m_CurrHour * 360 + m_CurrMin * 6;
       
+      //Serial.println(m_StartTimerSeconds);
+      //Serial.println(m_StopTimerSeconds);
+      //Serial.println(m_CurrTimeSeconds);
+      
       if (m_StopTimerSeconds < m_StartTimerSeconds) {
       //End time is for next day 
         if ( ( (m_CurrTimeSeconds >= m_StartTimerSeconds) && (m_CurrTimeSeconds >= m_StopTimerSeconds) ) || ( (m_CurrTimeSeconds <= m_StartTimerSeconds) && (m_CurrTimeSeconds <= m_StopTimerSeconds) ) ){
            // Within time interval
-          //if (!g_StartCharging) {
 #ifdef BTN_MENU
           if (g_EvseController.GetState() == EVSE_STATE_DISABLED && !g_BtnHandler.InMenu()){
 #else
           if (g_EvseController.GetState() == EVSE_STATE_DISABLED){
 #endif //#ifdef BTN_MENU
   	    g_EvseController.Enable();
-            //g_StartCharging = 1;
           }           
         } else {
           if (m_CurrTimeSeconds == m_StopTimerSeconds) {
             // Not in time interval
-            g_EvseController.Disable();
-            //g_StartCharging = 0;          
+            g_EvseController.Disable();         
           }
         }
       } else {
         if ((m_CurrTimeSeconds >= m_StartTimerSeconds) && (m_CurrTimeSeconds < m_StopTimerSeconds)) {
           // Within time interval
-          //if (!g_StartCharging) {
 #ifdef BTN_MENU
           if (g_EvseController.GetState() == EVSE_STATE_DISABLED && !g_BtnHandler.InMenu()){
 #else
           if (g_EvseController.GetState() == EVSE_STATE_DISABLED){
 #endif //#ifdef BTN_MENU
   	    g_EvseController.Enable();
-            //g_StartCharging = 1;
           }          
         } else {
           if (m_CurrTimeSeconds == m_StopTimerSeconds) {
             // Not in time interval
-            g_EvseController.Disable();
-            //g_StartCharging = 0;          
+            g_EvseController.Disable();          
           }
         }
       }
