@@ -23,7 +23,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #include <EEPROM.h>
-#include <avr/wdt.h>e
+#include <avr/wdt.h>
 #include <avr/pgmspace.h>
 #include <pins_arduino.h>
 #include <Wire.h>
@@ -36,7 +36,7 @@
 #include "WProgram.h" // shouldn't need this but arduino sometimes messes up and puts inside an #ifdef
 #endif // ARDUINO
 
-prog_char VERSTR[] PROGMEM = "1.6.1";
+prog_char VERSTR[] PROGMEM = "1.6.2";
 
 //-- begin features
 
@@ -93,6 +93,9 @@ prog_char VERSTR[] PROGMEM = "1.6.1";
 // Option for AutoStart Enable/Disable - GoldServe
 #define AUTOSTART
 
+// Option for AutoStart Menu. If defined, AutoStart feature is also defined by default - GoldServe
+//#define AUTOSTART_MENU
+
 //-- end features
 
 #if defined(RGBLCD) || defined(I2CLCD)
@@ -101,6 +104,10 @@ prog_char VERSTR[] PROGMEM = "1.6.1";
 
 // AutoStart feature must be defined if Delay Timers are used - GoldServe
 #ifdef DELAYTIMER
+#define AUTOSTART
+#endif
+
+#ifdef AUTOSTART_MENU
 #define AUTOSTART
 #endif
 
@@ -176,11 +183,11 @@ prog_char VERSTR[] PROGMEM = "1.6.1";
 #define WHITE 0x7 
 
 #if defined(RGBLCD) || defined(I2CLCD)
-// Using LiquidTWI2 for both types if I2C LCD's
+// Using LiquidTWI2 for both types of I2C LCD's
 // see http://blog.lincomatic.com/?p=956 for installation instructions
 #include <Wire.h>
 #include <LiquidTWI2.h>
-#define LCD_I2C_ADDR 0 // for adafruit LCD backpack
+#define LCD_I2C_ADDR 0x20 // for adafruit shield or backpack
 #endif // RGBLCD || I2CLCD
 
 #define BTN_PIN 7 //A3 // button sensing pin
@@ -247,8 +254,8 @@ public:
     m_Lcd.begin(x,y); 
     m_Lcd.setBacklight(HIGH);
 #elif defined(RGBLCD)
-    m_Lcd.setMCPType(LTI_TYPE_MCP23017);    
-    m_Lcd.begin(x,y);
+    m_Lcd.setMCPType(LTI_TYPE_MCP23017);
+    m_Lcd.begin(x,y); 
     m_Lcd.setBacklight(WHITE);
 #endif
   }
@@ -593,7 +600,8 @@ public:
   Menu *Select();
 };
 
-#ifdef AUTOSTART
+
+#ifdef AUTOSTART_MENU
 class AutoStartMenu : public Menu {
 public:
   AutoStartMenu();
@@ -601,7 +609,8 @@ public:
   void Next();
   Menu *Select();
 };
-#endif //ifdef AUTOSTART
+#endif //#ifdef AUTOSTART_MENU
+
 #ifdef DELAYTIMER
 class RTCMenu : public Menu {
 public:
@@ -718,9 +727,9 @@ prog_char g_psGndChk[] PROGMEM = "Ground Check";
 prog_char g_psReset[] PROGMEM = "Reset";
 prog_char g_psExit[] PROGMEM = "Exit";
 // Add additional strings - GoldServe
-#ifdef AUTOSTART
+#ifdef AUTOSTART_MENU
 prog_char g_psAutoStart[] PROGMEM = "Auto Start";
-#endif
+#endif //#ifdef AUTOSTART_MENU
 #ifdef DELAYTIMER
 prog_char g_psRTC[] PROGMEM = "Date/Time";
 prog_char g_psRTC_Month[] PROGMEM = "Set Month";
@@ -746,9 +755,9 @@ GndChkMenu g_GndChkMenu;
 #endif // ADVPWR
 ResetMenu g_ResetMenu;
 // Instantiate additional Menus - GoldServe
-#ifdef AUTOSTART
+#ifdef AUTOSTART_MENU
 AutoStartMenu g_AutoStartMenu;
-#endif
+#endif //#ifdef AUTOSTART_MENU
 #ifdef DELAYTIMER
 RTCMenu g_RTCMenu;
 RTCMenuMonth g_RTCMenuMonth;
@@ -1299,7 +1308,7 @@ void CLI::print_P(prog_char *s)
 
 OnboardDisplay::OnboardDisplay()
 #if defined(I2CLCD) || defined(RGBLCD)
-  : m_Lcd(LCD_I2C_ADDR)
+  : m_Lcd(LCD_I2C_ADDR,1)
 #endif
 {
   m_strBuf = g_sTmp;
@@ -2454,11 +2463,11 @@ void SetupMenu::Next()
   }
 #endif //#ifndef DELAYTIMER
 
-#ifndef AUTOSTART
+#ifndef AUTOSTART_MENU
   if (m_CurIdx == 7) {
     m_CurIdx++;
   }
-#endif //#ifndef AUTOSTART
+#endif //#ifndef AUTOSTART_MENU
 
   const prog_char *title;
   switch(m_CurIdx) {
@@ -2491,12 +2500,12 @@ void SetupMenu::Next()
     title = g_DelayMenu.m_Title;
     break;
 #endif //#ifdef DELAYTIMER
-#ifdef AUTOSTART
+#ifdef AUTOSTART_MENU
 // Add menu items to control Auto Start - GoldServe
   case 7:
     title = g_AutoStartMenu.m_Title;
     break;
-#endif //#ifdef AUTOSTART
+#endif //#ifdef AUTOSTART_MENU
   default:
     title = g_psExit;
     break;
@@ -2535,12 +2544,12 @@ Menu *SetupMenu::Select()
     return &g_DelayMenu;
   }
 #endif //#ifdef DELAYTIMER
-#ifdef AUTOSTART
+#ifdef AUTOSTART_MENU
 // Add menu items to control Auto Start - GoldServe
   else if (m_CurIdx == 7) {
     return &g_AutoStartMenu;
   }
-#endif //#ifdef AUTOSTART
+#endif //#ifdef AUTOSTART_MENU
   else {
     g_OBD.LcdClear();
     return NULL;
@@ -3247,7 +3256,7 @@ Menu *DelayMenuStopMin::Select()
   return &g_SetupMenu;
 }
 #endif //#ifdef DELAYTIMER
-#ifdef AUTOSTART
+#ifdef AUTOSTART_MENU
 // Menus for Auto Start feature - GoldServe
 AutoStartMenu::AutoStartMenu()
 {
@@ -3284,7 +3293,7 @@ Menu *AutoStartMenu::Select()
   delay(500);
   return &g_SetupMenu;
 }
-#endif //#ifdef AUTOSTART
+#endif //#ifdef AUTOSTART_MENU
 
 // wdt_init turns off the watchdog timer after we use it
 // to reboot
