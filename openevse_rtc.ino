@@ -46,8 +46,10 @@ prog_char VERSTR[] PROGMEM = "1.6.2";
 // GFI support
 #define GFI
 
-// serial port command line
-#define SERIALCLI
+// serial port command line. 
+// For the RTC version, only CLI or LCD can be defined at one time. 
+// There is a directive to take care of that if you forget.
+//#define SERIALCLI
 
 //Adafruit RGBLCD
 #define RGBLCD
@@ -109,6 +111,11 @@ prog_char VERSTR[] PROGMEM = "1.6.2";
 
 #ifdef AUTOSTART_MENU
 #define AUTOSTART
+#endif
+
+//If LCD is defined, un-define it so we can save ram space.
+#ifdef LCD16X2
+#undef SERIALCLI
 #endif
 
 //-- begin configuration
@@ -1867,10 +1874,11 @@ void J1772EVSEController::LoadThresholds()
 
 void J1772EVSEController::SetSvcLevel(uint8_t svclvl)
 {
+#ifdef SERIALCLI
   if (SerDbgEnabled()) {
     g_CLI.print_P(PSTR("SetSvcLevel: "));Serial.println((int)svclvl);
   }
-
+#endif //#ifdef SERIALCLI
   if (svclvl == 2) {
     m_bFlags |= ECF_L2; // set to Level 2
   }
@@ -2256,7 +2264,7 @@ void J1772EVSEController::Update()
       m_Pilot.SetState(PILOT_STATE_P12);
       chargingOff(); // turn off charging current
     }
-
+#ifdef SERIALCLI
     if (SerDbgEnabled()) {
       g_CLI.print_P(PSTR("state: "));
       Serial.print((int)prevevsestate);
@@ -2267,6 +2275,7 @@ void J1772EVSEController::Update()
       g_CLI.print_P(PSTR(" "));
       Serial.println(phigh);
     }
+#endif //#ifdef SERIALCLI
   }
 
   m_PrevEvseState = prevevsestate;
